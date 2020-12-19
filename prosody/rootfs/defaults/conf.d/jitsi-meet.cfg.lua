@@ -1,3 +1,15 @@
+{{ $ENABLE_TURN := .Env.TURN_IS_EXTERNAL | default "0" | toBool }}
+{{ if $ENABLE_TURN }}
+turncredentials_secret="{{ .Env.TURN_SECRET }}";
+turncredentials_port=443;
+turncredentials_ttl=86400;
+turncredentials = {
+  { type = "stun", host = "{{ .Env.TURN_SERVER }}", port = "{{ .Env.TURN_PORT }}" },
+  { type = "turn", host = "{{ .Env.TURN_SERVER }}", port = "{{ .Env.TURN_PORT }}", transport = "udp" },
+  { type = "turns", host = "{{ .Env.TURN_SERVER }}", port = "{{ .Env.TURN_PORT_TLS }}", transport = "tcp" }
+};
+{{ end }}
+
 admins = {
     "{{ .Env.JICOFO_AUTH_USER }}@{{ .Env.XMPP_AUTH_DOMAIN }}",
     "{{ .Env.JVB_AUTH_USER }}@{{ .Env.XMPP_AUTH_DOMAIN }}"
@@ -85,6 +97,9 @@ VirtualHost "{{ .Env.XMPP_DOMAIN }}"
         "pubsub";
         "ping";
         "speakerstats";
+		{{ if $ENABLE_TURN }}
+		"turncredentials";
+		{{ end }}
         "conference_duration";
         {{ if and $ENABLE_LOBBY (not $ENABLE_GUEST_DOMAIN) }}
         "muc_lobby_rooms";
@@ -127,6 +142,9 @@ VirtualHost "{{ .Env.XMPP_GUEST_DOMAIN }}"
     {{ if $ENABLE_LOBBY }}
     modules_enabled = {
         "muc_lobby_rooms";
+		{{ if $ENABLE_TURN }}
+		"turncredentials";
+		{{ end }}
     }
 
     main_muc = "{{ .Env.XMPP_MUC_DOMAIN }}"
