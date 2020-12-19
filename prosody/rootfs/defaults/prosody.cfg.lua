@@ -1,4 +1,5 @@
 {{ $LOG_LEVEL := .Env.LOG_LEVEL | default "info" }}
+{{ $ENABLE_TURN := .Env.TURN_IS_EXTERNAL | default "0" | toBool }}
 
 -- Prosody Example Configuration File
 --
@@ -66,6 +67,9 @@ modules_enabled = {
 
 	-- Other specific functionality
 		"posix"; -- POSIX functionality, sends server to background, enables syslog, etc.
+        {{ if $ENABLE_TURN }}
+        "turncredentials";
+        {{ end }}
 		--"groups"; -- Shared roster support
 		--"announce"; -- Send announcement to all online users
 		--"welcome"; -- Welcome users who register accounts
